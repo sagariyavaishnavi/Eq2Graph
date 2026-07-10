@@ -40,12 +40,8 @@ function App() {
     setError(null);
     setRecognizedText(null);
     try {
-      // Clean up the URL to prevent double slashes or double /api/api
-      let baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
-      if (baseUrl.endsWith('/api')) {
-        baseUrl = baseUrl.slice(0, -4);
-      }
-      const response = await axios.post(`${baseUrl}/api/parse-equation`, payload);
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const response = await axios.post(`${apiUrl}/api/parse-equation`, payload);
       if (response.data && response.data.equations) {
         setEquations(response.data.equations);
         setRecognizedText(response.data.equations.join(', '));
