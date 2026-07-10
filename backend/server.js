@@ -74,7 +74,7 @@ If the input is a word problem, extract the underlying mathematical relationship
     let errorMsg = 'Internal Server Error';
     if (error.message) {
       if (error.message.includes('quota') || error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
-        errorMsg = 'Gemini API quota exceeded. Please wait a moment and try again, or check your API key billing details.';
+        errorMsg = 'Free quota is exceeded, please try again later';
       } else {
         // Extract just the first line of the error and limit its length
         errorMsg = error.message.split('\n')[0].substring(0, 150);
