@@ -13,7 +13,6 @@ async function callWithRetries(
 ) {
   const modelsToTry = [
     "gemini-2.5-flash",
-    "gemini-2.5-flash-lite",
   ];
   let lastErr;
 

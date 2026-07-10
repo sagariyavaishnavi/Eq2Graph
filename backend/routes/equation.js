@@ -21,8 +21,8 @@ router.post('/parse-equation', async (req, res) => {
       if (error.message.includes('quota') || error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
         errorMsg = 'Free quota is exceeded, please try again later';
       } else {
-        // Extract just the first line of the error and limit its length
-        errorMsg = error.message.split('\n')[0].substring(0, 150);
+        // Hide technical API errors from the user completely
+        errorMsg = 'An error occurred, please try again later.';
       }
     }
     res.status(500).json({ error: errorMsg });
