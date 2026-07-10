@@ -12,12 +12,11 @@ async function callWithRetries(
   { attempts = 3, baseDelayMs = 600 } = {}
 ) {
   const modelsToTry = [
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash-8b",
+    "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
   ];
   let lastErr;
-  
+
   for (const modelName of modelsToTry) {
     for (let i = 0; i < attempts; i++) {
       try {
@@ -32,7 +31,7 @@ async function callWithRetries(
       } catch (err) {
         lastErr = err;
         const msg = (err?.message || "").toLowerCase();
-        
+
         // Handle Quota / Rate limit errors
         if (msg.includes("429") || msg.includes("quota") || msg.includes("resource_exhausted")) {
           if (i < attempts - 1) {
@@ -43,7 +42,7 @@ async function callWithRetries(
           // Out of retries for Quota. Throw immediately to avoid masking with fallback model errors.
           throw err;
         }
-        
+
         // Handle Server Overloaded errors
         const isOverloaded = msg.includes("503") || msg.includes("overloaded");
         if (isOverloaded && i < attempts - 1) {
@@ -51,13 +50,13 @@ async function callWithRetries(
           await sleep(delay);
           continue; // Retry same model
         }
-        
+
         // For other errors (like 404 Model Not Found), break and try the next fallback model
         break;
       }
     }
   }
-  
+
   const error = new Error(lastErr?.message || "Gemini request failed");
   if ((lastErr?.message || "").includes("503")) error.status = 503;
   throw error;
@@ -80,7 +79,7 @@ If the input is a word problem, extract the underlying mathematical relationship
     // image is expected to be a base64 string like "data:image/png;base64,iVBORw0KGgo..."
     const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
     const mimeType = image.match(/^data:(image\/\w+);base64,/)?.[1] || 'image/png';
-    
+
     const imagePart = {
       inlineData: {
         data: base64Data,
@@ -93,7 +92,7 @@ If the input is a word problem, extract the underlying mathematical relationship
   }
 
   const textOutput = await callWithRetries(contents);
-  
+
   // Attempt to parse the JSON
   const cleanJson = textOutput.replace(/```json\n?|```/g, '').trim();
   return JSON.parse(cleanJson);
