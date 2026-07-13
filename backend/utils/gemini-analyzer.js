@@ -11,8 +11,9 @@ async function callWithRetries(
   contents,
   { attempts = 3, baseDelayMs = 600 } = {}
 ) {
+  // Let the user specify a model in .env, otherwise fallback to the one that worked for them
   const modelsToTry = [
-    "gemini-2.5-flash",
+    process.env.GEMINI_MODEL || "gemini-2.5-flash",
   ];
   let lastErr;
 

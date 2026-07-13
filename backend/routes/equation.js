@@ -21,8 +21,8 @@ router.post('/parse-equation', async (req, res) => {
       if (error.message.includes('quota') || error.message.includes('429') || error.message.includes('RESOURCE_EXHAUSTED')) {
         errorMsg = 'Free quota is exceeded, please try again later';
       } else {
-        // Hide technical API errors from the user completely
-        errorMsg = 'An error occurred, please try again later.';
+        // Show the actual technical error so we can debug why Vercel is failing
+        errorMsg = error.message || 'An unknown error occurred';
       }
     }
     res.status(500).json({ error: errorMsg });
