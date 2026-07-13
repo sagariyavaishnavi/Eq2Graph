@@ -11,9 +11,9 @@ async function callWithRetries(
   contents,
   { attempts = 3, baseDelayMs = 600 } = {}
 ) {
-  // Let the user specify a model in .env, otherwise fallback to the one that worked for them
+  // Hardcoding to the exact stable version to prevent environment variable ghosting
   const modelsToTry = [
-    process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    "gemini-2.0-flash",
   ];
   let lastErr;
 
