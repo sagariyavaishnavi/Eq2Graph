@@ -1,7 +1,18 @@
 const { GoogleGenAI } = require('@google/genai');
 
-// Initialize Gemini
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+// Gather all available API keys from the environment
+const apiKeys = [
+  process.env.GEMINI_API_KEY,
+  process.env.GEMINI_API_KEY_2
+].filter(Boolean); // Removes empty or undefined keys
+
+if (apiKeys.length === 0) {
+  console.warn("WARNING: No GEMINI_API_KEY found in environment variables.");
+}
+
+// Create a GoogleGenAI instance for every key you provide
+const aiInstances = apiKeys.map(key => new GoogleGenAI({ apiKey: key }));
+let currentKeyIndex = 0;
 
 // Internal helper to sleep
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -16,10 +27,14 @@ async function callWithRetries(
     "gemini-2.0-flash",
   ];
   let lastErr;
+  let keysSwapped = 0;
 
   for (const modelName of modelsToTry) {
     for (let i = 0; i < attempts; i++) {
       try {
+        // Use the currently active API key
+        const ai = aiInstances[currentKeyIndex];
+
         const result = await ai.models.generateContent({
           model: modelName,
           contents: contents,
@@ -34,12 +49,22 @@ async function callWithRetries(
 
         // Handle Quota / Rate limit errors
         if (msg.includes("429") || msg.includes("quota") || msg.includes("resource_exhausted")) {
+
+          // If we have multiple keys and haven't tried them all yet for this request, swap instantly!
+          if (aiInstances.length > 1 && keysSwapped < aiInstances.length - 1) {
+            console.log(`\n⚠️ Quota exceeded! Swapping to Backup API Key...`);
+            currentKeyIndex = (currentKeyIndex + 1) % aiInstances.length;
+            keysSwapped++;
+            i--; // Don't waste an attempt count on a key swap
+            continue;
+          }
+
           if (i < attempts - 1) {
             const delay = baseDelayMs * Math.pow(2, i) + Math.floor(Math.random() * 200);
             await sleep(delay);
             continue;
           }
-          // Out of retries for Quota. Throw immediately to avoid masking with fallback model errors.
+          // Out of retries for Quota.
           throw err;
         }
 
